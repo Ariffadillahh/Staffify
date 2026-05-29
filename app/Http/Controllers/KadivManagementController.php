@@ -12,9 +12,18 @@ use Illuminate\Support\Str;
 
 class KadivManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Ambil daftar divisi yang belum memiliki Kepala Divisi (Kadiv)
         $divisis = Divisi::with('proker')->whereNull('kadiv_id')->get();
+
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'divisis' => $divisis
+            ], 200);
+        }
+
         return view('po.kadiv.generate', compact('divisis'));
     }
 
@@ -22,16 +31,28 @@ class KadivManagementController extends Controller
     {
         $request->validate([
             'proker_id' => 'required|exists:prokers,id',
+            'nama_divisi' => 'required|array',
             'nama_divisi.*' => 'required|string|max:255',
+            'kuota_staff' => 'required|array',
             'kuota_staff.*' => 'required|integer|min:1',
         ]);
 
+        $createdDivisions = [];
+
         foreach ($request->nama_divisi as $key => $nama) {
-            Divisi::create([
+            $createdDivisions[] = Divisi::create([
                 'proker_id' => $request->proker_id,
                 'nama_divisi' => $nama,
                 'kuota_staff' => $request->kuota_staff[$key],
             ]);
+        }
+
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar divisi berhasil ditambahkan!',
+                'data' => $createdDivisions
+            ], 201);
         }
 
         return back()->with('success', 'Daftar divisi berhasil ditambahkan!');
@@ -57,8 +78,24 @@ class KadivManagementController extends Controller
         $divisi = Divisi::findOrFail($request->divisi_id);
         $divisi->update(['kadiv_id' => $kadiv->id]);
 
-        // Kirim Email (Pastikan konfigurasi .env SMTP sudah benar)
-        Mail::to($kadiv->email)->send(new AkunKadivCreated($kadiv, $passwordPlain, $divisi));
+        // Kirim Email secara asynchronous (background task) / Sync tergantung setup .env kamu
+        try {
+            Mail::to($kadiv->email)->send(new AkunKadivCreated($kadiv, $passwordPlain, $divisi));
+        } catch (\Exception $e) {
+            // Tetap izinkan akun terbuat di lokal sistem jika internet server/SMTP bermasalah
+        }
+
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Akun Kadiv ' . $kadiv->name . ' berhasil dibuat!',
+                'data' => [
+                    'kadiv' => $kadiv,
+                    'divisi' => $divisi,
+                    'generated_password' => $passwordPlain // Opsional untuk membantu debug pada API mobile
+                ]
+            ], 201);
+        }
 
         return back()->with('success', 'Akun Kadiv ' . $kadiv->name . ' berhasil dibuat!');
     }

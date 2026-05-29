@@ -72,7 +72,7 @@
                                             {{ \Carbon\Carbon::parse($waktu->waktu_selesai)->format('H:i') }}
                                         </td>
                                         @foreach ($tanggals as $tgl)
-                                            @php $slot = $jadwals[$tgl]->where('waktu_mulai', $waktu->waktu_mulai)->first(); @endphp
+                                            @php $slot = $jadwalsGrouped[$tgl]->where('waktu_mulai', $waktu->waktu_mulai)->first(); @endphp
 
                                             <td class="border border-slate-300 p-0 text-center relative">
                                                 @if ($slot && $slot->status == 'tersedia')

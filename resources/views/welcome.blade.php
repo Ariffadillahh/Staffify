@@ -36,13 +36,22 @@
             </div>
         </div>
 
-        <div class="text-center mt-10">
-            <a href="/daftar"
-                class="inline-flex items-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-base px-8 py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5 duration-200">
-                <i class="ph-fill ph-user-plus text-xl"></i> Daftarkan Diri Kamu Sekarang
-            </a>
-            <p class="text-xs text-slate-400 font-semibold mt-3 uppercase tracking-wider">Pastikan berkas CV & Portofolio
-                sudah siap</p>
-        </div>
+        @if ($proker && $proker->divisi->where('is_open', true)->count() > 0)
+            <div class="text-center mt-10">
+                <a href="/daftar"
+                    class="inline-flex items-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-base px-8 py-4 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5 duration-200">
+                    <i class="ph-fill ph-user-plus text-xl"></i> Daftarkan Diri Kamu Sekarang
+                </a>
+                <p class="text-xs text-slate-400 font-semibold mt-3 uppercase tracking-wider">Pastikan berkas CV &
+                    Portofolio sudah siap</p>
+            </div>
+        @else
+            <div class="text-center mt-10">
+                <div
+                    class="inline-flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100 px-6 py-3 rounded-2xl text-sm font-bold shadow-sm">
+                    <i class="ph-fill ph-lock-keyhole text-base"></i> Pendaftaran Belum Dibuka / Sudah Ditutup Resmi
+                </div>
+            </div>
+        @endif
     </div>
 @endsection

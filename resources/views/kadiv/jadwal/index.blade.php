@@ -87,7 +87,10 @@
 
                             @foreach ($tanggals as $tgl)
                                 @php
-                                    $slot = $jadwals[$tgl]->where('waktu_mulai', $waktu->waktu_mulai)->first();
+                                    $slot = $jadwalsGrouped
+                                        ->get($tgl, collect())
+                                        ->where('waktu_mulai', $waktu->waktu_mulai)
+                                        ->first();
 
                                     $isDinilai =
                                         $slot &&
@@ -192,7 +195,7 @@
                                         </td>
 
                                         @foreach ($tanggals as $tgl)
-                                            @php $slot = $jadwals[$tgl]->where('waktu_mulai', $waktu->waktu_mulai)->first(); @endphp
+                                            @php $slot = $jadwalsGrouped->get($tgl, collect())->where('waktu_mulai', $waktu->waktu_mulai)->first(); @endphp
                                             <td class="border border-gray-800 p-0 text-center relative">
                                                 @if ($slot)
                                                     @if ($slot->status == 'dibooking')

@@ -10,9 +10,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileMatchingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $divisi = Auth::user()->divisi;
+
+        if (!$divisi) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Divisi belum diatur.'], 403);
+            }
+            return redirect('/')->with('error', 'Divisi belum diatur.');
+        }
 
         $pendaftarans = Pendaftaran::where('divisi_id', $divisi->id)
             ->whereHas('penilaians')
@@ -22,24 +29,44 @@ class ProfileMatchingController extends Controller
         $divisiLain = Divisi::where('id', '!=', $divisi->id)->get();
 
         if ($pendaftarans->isEmpty()) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'results' => [],
+                    'divisi' => $divisi,
+                    'divisiLain' => $divisiLain
+                ], 200);
+            }
             return view('kadiv.hasil_pm.index', ['results' => [], 'divisi' => $divisi, 'divisiLain' => $divisiLain]);
         }
 
         $results = $this->kalkulasiPM($pendaftarans, $divisi->id);
 
+        // RESPON API FLUTTER
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'results' => $results,
+                'divisi' => $divisi,
+                'divisiLain' => $divisiLain
+            ], 200);
+        }
+
+        // RESPON WEB BLADE LAMA
         return view('kadiv.hasil_pm.index', compact('results', 'divisi', 'divisiLain'));
     }
 
     public function simpanKeputusan(Request $request, $id)
     {
         $pendaftaran = Pendaftaran::findOrFail($id);
+        $message = "";
 
         if ($request->aksi == 'terima') {
             $pendaftaran->update(['status' => 'diterima']);
-            return back()->with('success', "Kandidat {$pendaftaran->nama_lengkap} berhasil DITERIMA.");
+            $message = "Kandidat {$pendaftaran->nama_lengkap} berhasil DITERIMA.";
         } elseif ($request->aksi == 'tolak') {
             $pendaftaran->update(['status' => 'ditolak']);
-            return back()->with('success', "Kandidat {$pendaftaran->nama_lengkap} telah DITOLAK.");
+            $message = "Kandidat {$pendaftaran->nama_lengkap} telah DITOLAK.";
         } elseif ($request->aksi == 'pindah') {
             $request->validate(['divisi_baru_id' => 'required|exists:divisis,id']);
 
@@ -47,25 +74,24 @@ class ProfileMatchingController extends Controller
                 'divisi_id' => $request->divisi_baru_id,
                 'status' => 'diterima'
             ]);
-
-            return back()->with('success', "Kandidat {$pendaftaran->nama_lengkap} berhasil dilempar ke divisi lain.");
+            $message = "Kandidat {$pendaftaran->nama_lengkap} berhasil dilempar ke divisi lain.";
         }
 
-        return back();
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $pendaftaran
+            ], 200);
+        }
+
+        return back()->with('success', $message);
     }
 
-    public function detailKalkulasi($id)
+    public function detailKalkulasi(Request $request, $id)
     {
         $divisi = Auth::user()->divisi;
-        $pendaftaran = \App\Models\Pendaftaran::with(['penilaians.kriteria'])->findOrFail($id);
-
-        // $userLogin = Auth::user();
-
-        // if ($userLogin->role !== 'po' && $userLogin->role !== 'vpo') {
-        //     if ($pendaftaran->divisi_id !== ($userLogin->divisi->id ?? null)) {
-        //         abort(403, 'Akses ditolak. Anda hanya dapat melihat detail nilai dari divisi Anda sendiri.');
-        //     }
-        // }
+        $pendaftaran = Pendaftaran::with(['penilaians.kriteria'])->findOrFail($id);
 
         $bobot_gap = [
             0  => ['bobot' => 5,   'ket' => 'Tidak ada selisih (Sesuai target)'],
@@ -82,8 +108,6 @@ class ProfileMatchingController extends Controller
         $detail_kriteria = [];
         $ncf = 0;
         $nsf = 0;
-
-        // ARRAY BARU UNTUK MENAMPUNG DETAIL ANGKA PENJUMLAHAN
         $cf_bobots = [];
         $sf_bobots = [];
 
@@ -97,10 +121,10 @@ class ProfileMatchingController extends Controller
 
             if ($penilaian->kriteria->jenis_factor == 'core') {
                 $ncf += $bobot;
-                $cf_bobots[] = $bobot; // Catat angkanya
+                $cf_bobots[] = $bobot;
             } else {
                 $nsf += $bobot;
-                $sf_bobots[] = $bobot; // Catat angkanya
+                $sf_bobots[] = $bobot;
             }
 
             $detail_kriteria[] = [
@@ -131,30 +155,38 @@ class ProfileMatchingController extends Controller
             'count_sf' => $count_sf,
         ];
 
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'pendaftaran' => $pendaftaran,
+                'divisi' => $divisi,
+                'detail_kriteria' => $detail_kriteria,
+                'ringkasan' => $ringkasan
+            ], 200);
+        }
+
         return view('kadiv.hasil_pm.detail', compact('pendaftaran', 'divisi', 'detail_kriteria', 'ringkasan'));
     }
 
     private function kalkulasiPM($pendaftarans, $divisi_id)
     {
-        $kriterias = Kriteria::where('divisi_id', $divisi_id)->get();
-        $final_scores = [];
-
-        // Tabel Konversi Bobot Nilai Gap
         $bobot_gap = [
-            0  => 5,   // Tidak ada selisih (Sesuai target)
-            1  => 4.5, // Kelebihan 1 tingkat
-            -1 => 4,   // Kekurangan 1 tingkat
-            2  => 3.5, // Kelebihan 2 tingkat
-            -2 => 3,   // Kekurangan 2 tingkat
-            3  => 2.5, // Kelebihan 3 tingkat
-            -3 => 2,   // Kekurangan 3 tingkat
-            4  => 1.5, // Kelebihan 4 tingkat
-            -4 => 1,   // Kekurangan 4 tingkat
+            0 => 5,
+            1 => 4.5,
+            -1 => 4,
+            2 => 3.5,
+            -2 => 3,
+            3 => 2.5,
+            -3 => 2,
+            4 => 1.5,
+            -4 => 1
         ];
 
+        $final_scores = [];
+
         foreach ($pendaftarans as $p) {
-            $ncf = 0; // Total Nilai Core Factor
-            $nsf = 0; // Total Nilai Secondary Factor
+            $ncf = 0;
+            $nsf = 0;
             $count_cf = 0;
             $count_sf = 0;
 
@@ -174,11 +206,8 @@ class ProfileMatchingController extends Controller
                 }
             }
 
-            // Hitung rata-rata NCF dan NSF
             $avg_cf = $count_cf > 0 ? ($ncf / $count_cf) : 0;
             $avg_sf = $count_sf > 0 ? ($nsf / $count_sf) : 0;
-
-            // Hitung Total (60% Core, 40% Secondary)
             $total_value = ($avg_cf * 0.6) + ($avg_sf * 0.4);
 
             $final_scores[] = [
@@ -189,7 +218,6 @@ class ProfileMatchingController extends Controller
             ];
         }
 
-        // Urutkan (Ranking) berdasarkan nilai total terbesar
         usort($final_scores, function ($a, $b) {
             return $b['total'] <=> $a['total'];
         });
