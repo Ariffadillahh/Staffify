@@ -69,15 +69,10 @@
                     @endif
 
                     <div class="w-full overflow-hidden">
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                            Pengalaman
-                        </p>
-
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Pengalaman</p>
                         <div
                             class="bg-gray-50 border border-gray-100 rounded-lg p-3 text-sm text-gray-700 leading-relaxed overflow-hidden break-all">
-
                             {{ $pendaftaran->pengalaman ?? 'Tidak mencantumkan pengalaman.' }}
-
                         </div>
                     </div>
                 </div>
@@ -94,17 +89,24 @@
                 </div>
 
                 @if ($sudahDinilai)
-                    <div class="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-start gap-3">
-                        <i class="ph-fill ph-check-circle text-emerald-500 text-2xl mt-0.5"></i>
-                        <div>
-                            <h4 class="text-emerald-800 font-bold">Kandidat ini sudah dinilai!</h4>
-                            <p class="text-emerald-600 text-sm mt-0.5">Berikut adalah hasil evaluasi wawancara yang telah
-                                Anda simpan sebelumnya. Data ini sudah dikunci.</p>
+                    <div
+                        class="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <i class="ph-fill ph-check-circle text-emerald-500 text-2xl mt-0.5"></i>
+                            <div>
+                                <h4 class="text-emerald-800 font-bold">Kandidat ini sudah dinilai!</h4>
+                                <p class="text-emerald-600 text-sm mt-0.5">Berikut adalah hasil evaluasi wawancara yang
+                                    telah Anda simpan sebelumnya. Data ini sudah dikunci.</p>
+                            </div>
                         </div>
+                        <button type="button" onclick="enableEdit()" id="btnEditMode"
+                            class="shrink-0 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-5 rounded-lg shadow-sm transition-all flex items-center gap-2 text-sm">
+                            <i class="ph ph-pencil-simple text-lg"></i> Edit Nilai
+                        </button>
                     </div>
                 @endif
 
-                <form action="{{ route('penilaian.store', $pendaftaran->id) }}" method="POST">
+                <form action="{{ route('penilaian.store', $pendaftaran->id) }}" method="POST" id="formPenilaian">
                     @csrf
 
                     <div class="overflow-x-auto">
@@ -146,7 +148,7 @@
                                         <td class="p-4">
                                             <select name="nilai[{{ $kriteria->id }}]"
                                                 {{ $sudahDinilai ? 'disabled' : 'required' }}
-                                                class="w-full border border-gray-300 font-bold rounded-lg p-2.5 outline-none shadow-sm 
+                                                class="select-nilai-kriteria w-full border border-gray-300 font-bold rounded-lg p-2.5 outline-none shadow-sm transition-all
                                                 {{ $sudahDinilai ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer' }}">
                                                 <option value="" disabled {{ !$nilaiTersimpan ? 'selected' : '' }}>
                                                     Pilih...</option>
@@ -175,17 +177,34 @@
                         </table>
                     </div>
 
-                    @if (!$sudahDinilai)
-                        <div class="flex justify-end pt-4 border-t border-gray-100">
-                            <button type="submit" @if ($kriterias->isEmpty()) disabled @endif
-                                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all flex items-center gap-2">
-                                <i class="ph ph-floppy-disk text-lg"></i> Simpan Hasil Wawancara
-                            </button>
-                        </div>
-                    @endif
+                    <div class="flex justify-end pt-4 border-t border-gray-100" id="submitButtonContainer"
+                        style="{{ $sudahDinilai ? 'display: none;' : '' }}">
+                        <button type="submit" @if ($kriterias->isEmpty()) disabled @endif
+                            class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all flex items-center gap-2">
+                            <i class="ph ph-floppy-disk text-lg"></i>
+                            {{ $sudahDinilai ? 'Simpan Perubahan Nilai' : 'Simpan Hasil Wawancara' }}
+                        </button>
+                    </div>
 
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        function enableEdit() {
+            let selects = document.querySelectorAll('.select-nilai-kriteria');
+            selects.forEach(select => {
+                select.disabled = false;
+                select.required = true;
+                select.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                select.classList.add('bg-white', 'text-gray-700', 'focus:ring-2', 'focus:ring-blue-500',
+                    'focus:border-blue-500', 'cursor-pointer');
+            });
+
+            document.getElementById('btnEditMode').style.display = 'none';
+
+            document.getElementById('submitButtonContainer').style.display = 'flex';
+        }
+    </script>
 @endsection

@@ -15,8 +15,11 @@ class KadivManagementController extends Controller
     public function index(Request $request)
     {
         // Ambil daftar divisi yang belum memiliki Kepala Divisi (Kadiv)
-        $divisis = Divisi::with('proker')->whereNull('kadiv_id')->get();
-
+        $divisis = Divisi::with('proker')
+            ->orderByRaw('kadiv_id IS NULL DESC')
+            ->orderBy('kadiv_id')
+            ->get();
+            
         if ($request->is('api/*') || $request->expectsJson()) {
             return response()->json([
                 'success' => true,

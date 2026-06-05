@@ -8,6 +8,8 @@ class Penilaian extends Model
 {
     protected $guarded = ['id'];
 
+    protected $fillable = ['pendaftaran_id', 'kriteria_id', 'nilai'];
+
     public function pendaftaran()
     {
         return $this->belongsTo(Pendaftaran::class);
@@ -17,6 +19,4 @@ class Penilaian extends Model
     {
         return $this->belongsTo(Kriteria::class);
     }
-
-   
 }

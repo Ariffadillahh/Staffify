@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PenilaianController extends Controller
 {
-    public function create(Request $request, $id) 
+    public function create(Request $request, $id)
     {
         $pendaftaran = Pendaftaran::with(['divisi', 'jadwalWawancara', 'penilaians'])->findOrFail($id);
 
@@ -38,14 +38,16 @@ class PenilaianController extends Controller
             'nilai.*' => 'required|integer|min:1|max:5',
         ]);
 
-        $insertedPenilaians = [];
-
         foreach ($request->nilai as $kriteria_id => $nilai_input) {
-            $insertedPenilaians[] = Penilaian::create([
-                'pendaftaran_id' => $pendaftaran->id,
-                'kriteria_id' => $kriteria_id,
-                'nilai' => $nilai_input
-            ]);
+            Penilaian::updateOrCreate(
+                [
+                    'pendaftaran_id' => $pendaftaran->id,
+                    'kriteria_id'    => $kriteria_id
+                ],
+                [
+                    'nilai' => $nilai_input
+                ]
+            );
         }
 
         $pendaftaran->update(['status' => 'dinilai']);
@@ -54,7 +56,6 @@ class PenilaianController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Hasil wawancara untuk ' . $pendaftaran->nama_lengkap . ' berhasil disimpan!',
-                'data' => $insertedPenilaians
             ], 200);
         }
 
