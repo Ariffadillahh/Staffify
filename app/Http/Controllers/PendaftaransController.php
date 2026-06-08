@@ -92,17 +92,22 @@ class PendaftaransController extends Controller
         $pendaftaran = Pendaftaran::with('divisi')->findOrFail($id);
         $divisi_id = $pendaftaran->divisi_id;
 
+        $hariIni = \Carbon\Carbon::today()->toDateString();
+
         $jadwals = JadwalWawancara::where('divisi_id', $divisi_id)
+            ->whereDate('tanggal', '>=', $hariIni) 
             ->orderBy('tanggal')
             ->orderBy('waktu_mulai')
             ->get();
 
         $tanggals = JadwalWawancara::where('divisi_id', $divisi_id)
+            ->whereDate('tanggal', '>=', $hariIni) 
             ->distinct()
             ->orderBy('tanggal')
             ->pluck('tanggal');
 
         $waktu_slots = JadwalWawancara::where('divisi_id', $divisi_id)
+            ->whereDate('tanggal', '>=', $hariIni) 
             ->select('waktu_mulai', 'waktu_selesai')
             ->distinct()
             ->orderBy('waktu_mulai')
@@ -165,8 +170,9 @@ class PendaftaransController extends Controller
         ]);
     }
 
-    public function statusPendaftaran() {
-        $proker = Proker::latest()->first(); 
+    public function statusPendaftaran()
+    {
+        $proker = Proker::latest()->first();
 
         $isOpen = false;
 

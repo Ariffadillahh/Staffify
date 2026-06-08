@@ -40,7 +40,7 @@
 
                     @if ($isSetup)
                         <a href="{{ route('login') }}"
-                            class="text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-xl transition-all">
+                            class="text-sm font-bold border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white px-4 py-2 rounded-xl transition-all duration-300">
                             Login Panitia
                         </a>
 
@@ -72,29 +72,38 @@
                 <p class="font-bold text-sm tracking-wide">BEM POLITEKNIK NEGERI JAKARTA</p>
                 <p class="text-xs text-slate-400 mt-1">Kabinet Simpul Perubahan 2026</p>
             </div>
-           <div class="flex items-center gap-3">
-            <a href="https://wa.me/6289527171722" target="_blank" class="w-9 h-9 bg-slate-800/40 hover:bg-emerald-600/20 hover:text-emerald-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30" title="WhatsApp">
-                <i class="ph-bold ph-whatsapp-logo text-base"></i>
-            </a>
-            
-            <a href="https://instagram.com/pena.pnj" target="_blank" class="w-9 h-9 bg-slate-800/40 hover:bg-pink-600/20 hover:text-pink-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30" title="Instagram">
-                <i class="ph-bold ph-instagram-logo text-base"></i>
-            </a>
-            
-            <a href="https://tiktok.com/@pena.pnj" target="_blank" class="w-9 h-9 bg-slate-800/40 hover:bg-slate-950 hover:text-white text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30" title="TikTok">
-                <i class="ph-bold ph-tiktok-logo text-base"></i>
-            </a>
-            
-            <a href="mailto:pena.pnj@gmail.com" class="w-9 h-9 bg-slate-800/40 hover:bg-blue-600/20 hover:text-blue-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30" title="Email">
-                <i class="ph-bold ph-envelope text-base"></i>
-            </a>
-        </div>
+            <div class="flex items-center gap-3">
+                <a href="https://wa.me/6289527171722" target="_blank"
+                    class="w-9 h-9 bg-slate-800/40 hover:bg-emerald-600/20 hover:text-emerald-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30"
+                    title="WhatsApp">
+                    <i class="ph-bold ph-whatsapp-logo text-base"></i>
+                </a>
 
-        <div class="text-center md:text-right text-[11px] text-slate-500">
-            &copy; 2026 Staffify. Powered by <span class="text-blue-500/80 font-semibold">Laravel</span> & <span class="text-cyan-500/80 font-semibold">Tailwind</span>.
-        </div>
+                <a href="https://instagram.com/pena.pnj" target="_blank"
+                    class="w-9 h-9 bg-slate-800/40 hover:bg-pink-600/20 hover:text-pink-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30"
+                    title="Instagram">
+                    <i class="ph-bold ph-instagram-logo text-base"></i>
+                </a>
 
-    </div>
+                <a href="https://tiktok.com/@pena.pnj" target="_blank"
+                    class="w-9 h-9 bg-slate-800/40 hover:bg-slate-950 hover:text-white text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30"
+                    title="TikTok">
+                    <i class="ph-bold ph-tiktok-logo text-base"></i>
+                </a>
+
+                <a href="mailto:pena.pnj@gmail.com"
+                    class="w-9 h-9 bg-slate-800/40 hover:bg-blue-600/20 hover:text-blue-400 text-slate-400 rounded-xl flex items-center justify-center transition-all duration-200 border border-slate-700/30"
+                    title="Email">
+                    <i class="ph-bold ph-envelope text-base"></i>
+                </a>
+            </div>
+
+            <div class="text-center md:text-right text-[11px] text-slate-500">
+                &copy; 2026 Staffify. Powered by <span class="text-blue-500/80 font-semibold">Laravel</span> & <span
+                    class="text-cyan-500/80 font-semibold">Tailwind</span>.
+            </div>
+
+        </div>
     </footer>
 
 </body>

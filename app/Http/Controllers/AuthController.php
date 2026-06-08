@@ -107,11 +107,12 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            // PERBAIKAN AMAN: Cek rute api/* atau header JSON
-            if ($request->is('api/*') || $request->expectsJson()) {
+
+            if ($request->is('api/*')) {
                 $user = Auth::user();
                 /** @var \App\Models\User $user */
                 $token = $user->createToken('auth_token')->plainTextToken;
+
                 return response()->json([
                     'success' => true,
                     'access_token' => $token,
@@ -121,13 +122,15 @@ class AuthController extends Controller
             }
 
             $request->session()->regenerate();
+
             if (Auth::user()->role == 'kadiv') {
                 return redirect()->route('kadiv.dashboard');
             }
+
             return redirect()->route('proker.index');
         }
 
-        if ($request->is('api/*') || $request->expectsJson()) {
+        if ($request->is('api/*')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kredensial tidak cocok dengan data kami.'
